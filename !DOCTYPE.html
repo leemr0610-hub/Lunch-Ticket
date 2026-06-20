@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘 뭐 먹지</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+  :root{
+    --paper: #f6ede1;
+    --ink: #2b2420;
+    --red: #c1432c;
+    --red-deep: #93301f;
+    --gold: #d9a441;
+    --line: #d8c6ab;
+    --stamp: #7a8c6b;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(193,67,44,0.05), transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(122,140,107,0.06), transparent 45%),
+      var(--paper);
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 28px 16px;
+  }
+
+  .ticket{
+    width:100%;
+    max-width: 480px;
+    background: #fffaf2;
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    position:relative;
+    box-shadow: 6px 6px 0 var(--ink);
+    overflow:hidden;
+  }
+
+  /* perforated edge top */
+  .ticket::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height:10px;
+    background-image: radial-gradient(circle, var(--paper) 4px, transparent 4.5px);
+    background-size: 18px 10px;
+    background-position: 9px -4px;
+  }
+
+  header{
+    padding: 28px 26px 16px;
+    text-align:center;
+    border-bottom: 1.5px dashed var(--line);
+  }
+
+  .eyebrow{
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--red-deep);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+
+  h1{
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(30px, 7vw, 38px);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .sub{
+    font-size: 13px;
+    color: #7a6f60;
+  }
+
+  main{
+    padding: 26px 26px 10px;
+  }
+
+  .stage{
+    background: var(--ink);
+    border-radius: 6px;
+    min-height: 190px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+    padding: 18px;
+  }
+
+  .stage::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 14px);
+    pointer-events:none;
+  }
+
+  .placeholder{
+    color:#cabfae;
+    font-size:14px;
+    text-align:center;
+    line-height:1.7;
+  }
+
+  .placeholder .big{
+    font-family:'Black Han Sans', sans-serif;
+    font-size: 22px;
+    color:#fffaf2;
+    display:block;
+    margin-bottom:4px;
+  }
+
+  .result{
+    display:none;
+    text-align:center;
+    color:#fffaf2;
+    animation: pop 0.35s cubic-bezier(.2,1.4,.4,1);
+  }
+
+  .result.show{ display:block; }
+
+  @keyframes pop{
+    0%{ transform: scale(0.85); opacity:0; }
+    100%{ transform: scale(1); opacity:1; }
+  }
+
+  .result .tag{
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    font-weight:700;
+    margin-bottom: 8px;
+  }
+
+  .result .menu-name{
+    font-family:'Black Han Sans', sans-serif;
+    font-size: clamp(34px, 9vw, 46px);
+    line-height:1.1;
+    margin: 0 0 10px;
+  }
+
+  .result .desc{
+    font-size: 13px;
+    color: #d8cfc0;
+    max-width: 320px;
+    margin: 0 auto;
+    line-height:1.6;
+  }
+
+  .shuffling{
+    font-family:'Black Han Sans', sans-serif;
+    font-size: 28px;
+    color:#fffaf2;
+    opacity:0.85;
+  }
+
+  .cta-row{
+    display:flex;
+    gap:10px;
+    margin: 22px 0 4px;
+  }
+
+  button{
+    font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer;
+    border:1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--paper);
+    font-weight:700;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  #pickBtn{
+    flex:1;
+    background: var(--red);
+    color:#fffaf2;
+    font-size:16px;
+    padding: 15px 10px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  #pickBtn:active{
+    transform: translate(3px,3px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  #pickBtn:disabled{
+    opacity:0.6;
+    cursor:default;
+  }
+
+  #excludeBtn{
+    padding: 15px 16px;
+    font-size:13px;
+    box-shadow: 3px 3px 0 var(--ink);
+    background:#fffaf2;
+  }
+
+  #excludeBtn:active{
+    transform: translate(3px,3px);
+    box-shadow: 0 0 0 var(--ink);
+  }
+
+  .filters{
+    margin-top: 18px;
+  }
+
+  .filters-label{
+    font-size:11px;
+    letter-spacing:0.15em;
+    color:#9a8d78;
+    margin-bottom:8px;
+    font-weight:700;
+  }
+
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .chip{
+    font-size:12.5px;
+    padding: 7px 13px;
+    border:1.3px solid var(--line);
+    border-radius: 100px;
+    background:transparent;
+    color: #7a6f60;
+    box-shadow:none;
+    font-weight:500;
+  }
+
+  .chip.active{
+    border-color: var(--stamp);
+    background: rgba(122,140,107,0.12);
+    color: var(--stamp);
+  }
+
+  footer{
+    padding: 18px 26px 26px;
+    text-align:center;
+  }
+
+  .stamp{
+    display:inline-block;
+    font-size: 11px;
+    letter-spacing:0.2em;
+    color: var(--stamp);
+    border: 1.3px solid var(--stamp);
+    padding: 5px 12px;
+    border-radius: 100px;
+    transform: rotate(-3deg);
+    font-weight:700;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .result, #pickBtn, #excludeBtn { animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ticket">
+  <header>
+    <div class="eyebrow">LUNCH TICKET · 점심 식권</div>
+    <h1>오늘 뭐 먹지?</h1>
+    <div class="sub">고민은 그만, 버튼 한 번이면 끝</div>
+  </header>
+
+  <main>
+    <div class="stage" id="stage">
+      <div class="placeholder" id="placeholder">
+        <span class="big">메뉴 추첨 대기 중</span>
+        아래 버튼을 눌러서 오늘의 점심을 뽑아보세요
+      </div>
+      <div class="shuffling" id="shuffling" style="display:none;"></div>
+      <div class="result" id="result">
+        <div class="tag" id="resultTag">오늘의 점심</div>
+        <p class="menu-name" id="resultName"></p>
+        <p class="desc" id="resultDesc"></p>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button id="pickBtn">메뉴 뽑기</button>
+      <button id="excludeBtn" title="방금 나온 메뉴 다시 안 나오게">이 메뉴 빼기</button>
+    </div>
+
+    <div class="filters">
+      <div class="filters-label">오늘의 기분</div>
+      <div class="chip-row" id="chipRow">
+        <button class="chip active" data-cat="all">전체</button>
+        <button class="chip" data-cat="korean">한식</button>
+        <button class="chip" data-cat="western">양식</button>
+        <button class="chip" data-cat="japanese">일식</button>
+        <button class="chip" data-cat="chinese">중식</button>
+        <button class="chip" data-cat="diet">다이어트식</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span class="stamp">✓ APPETITE APPROVED</span>
+  </footer>
+</div>
+
+<script>
+  const MENUS = [
+    { name:"김치찌개", cat:"korean", desc:"속이 칼칼해지는 날엔 역시 이만한 게 없죠." },
+    { name:"된장찌개", cat:"korean", desc:"구수하고 든든한, 흔들림 없는 선택." },
+    { name:"비빔밥", cat:"korean", desc:"색깔 예쁘게 비벼서 골고루 한 입." },
+    { name:"제육볶음", cat:"korean", desc:"매콤하게 볶아낸 돼지고기, 밥 한 공기 순삭." },
+    { name:"삼겹살", cat:"korean", desc:"오늘은 조금 특별하게, 동료들과 굽는 점심." },
+    { name:"갈비탕", cat:"korean", desc:"든든하게 보양하고 싶을 때." },
+    { name:"순두부찌개", cat:"korean", desc:"부드럽고 얼큰한 한 그릇." },
+    { name:"칼국수", cat:"korean", desc:"뜨끈한 면발에 마음까지 풀리는 한 그릇." },
+    { name:"냉면", cat:"korean", desc:"시원하게 한 그릇 들이켜고 싶은 날." },
+    { name:"닭갈비", cat:"korean", desc:"매콤달콤, 동료들과 나눠 먹기 좋은 메뉴." },
+    { name:"부대찌개", cat:"korean", desc:"얼큰하고 푸짐한, 모두가 좋아하는 한 그릇." },
+    { name:"국밥", cat:"korean", desc:"뜨끈하게 속을 채우는 한 그릇." },
+    { name:"파스타", cat:"western", desc:"오늘은 조금 색다르게, 면 위에 소스 한 스푼." },
+    { name:"피자", cat:"western", desc:"가끔은 손으로 집어 먹는 점심도 좋죠." },
+    { name:"스테이크", cat:"western", desc:"오늘은 나에게 주는 작은 사치." },
+    { name:"리조또", cat:"western", desc:"크리미하고 부드러운, 든든한 한 그릇." },
+    { name:"샌드위치", cat:"western", desc:"바쁜 점심, 가볍고 빠르게." },
+    { name:"햄버거", cat:"western", desc:"빠르게, 든든하게." },
+    { name:"초밥", cat:"japanese", desc:"신선하게 한 점씩, 깔끔한 한 끼." },
+    { name:"라멘", cat:"japanese", desc:"진한 육수에 푹 빠지고 싶은 날." },
+    { name:"우동", cat:"japanese", desc:"심플하고 깔끔하게, 부담 없이." },
+    { name:"돈까스", cat:"japanese", desc:"바삭한 튀김옷, 실패 없는 선택." },
+    { name:"규동", cat:"japanese", desc:"달콤짭짤한 소고기덮밥, 빠르고 든든하게." },
+    { name:"가츠동", cat:"japanese", desc:"바삭한 돈까스에 폭신한 달걀, 한 그릇 뚝딱." },
+    { name:"짜장면", cat:"chinese", desc:"고민될 땐 역시 짜장이냐 짬뽕이냐." },
+    { name:"짬뽕", cat:"chinese", desc:"얼큰한 국물이 당기는 날." },
+    { name:"마라탕", cat:"chinese", desc:"오늘은 얼얼한 자극이 필요해." },
+    { name:"탕수육", cat:"chinese", desc:"바삭하고 새콤달콤, 동료들과 나눠 먹기 좋은 메뉴." },
+    { name:"마파두부", cat:"chinese", desc:"얼큰하고 고소한, 밥 위에 올려 한 입." },
+    { name:"양꼬치", cat:"chinese", desc:"오늘은 조금 특별하게, 향신료 가득한 한 끼." },
+    { name:"쌀국수", cat:"diet", desc:"가볍지만 든든한, 향긋한 국물." },
+    { name:"샐러드", cat:"diet", desc:"속을 편하게 비워내고 싶은 날." },
+    { name:"포케", cat:"diet", desc:"건강하게, 그러나 맛있게." },
+    { name:"닭가슴살 도시락", cat:"diet", desc:"단백질 든든하게, 죄책감은 가볍게." },
+    { name:"두부 스테이크", cat:"diet", desc:"담백하고 든든한, 속이 편안한 한 끼." },
+    { name:"그릭요거트 볼", cat:"diet", desc:"가볍게 채우는, 상큼한 한 끼." }
+  ];
+
+  const stage = document.getElementById('stage');
+  const placeholder = document.getElementById('placeholder');
+  const shuffling = document.getElementById('shuffling');
+  const result = document.getElementById('result');
+  const resultName = document.getElementById('resultName');
+  const resultDesc = document.getElementById('resultDesc');
+  const resultTag = document.getElementById('resultTag');
+  const pickBtn = document.getElementById('pickBtn');
+  const excludeBtn = document.getElementById('excludeBtn');
+  const chipRow = document.getElementById('chipRow');
+
+  let activeCat = 'all';
+  let excluded = new Set();
+  let lastPick = null;
+  let isShuffling = false;
+
+  chipRow.addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCat = chip.dataset.cat;
+  });
+
+  function getPool(){
+    return MENUS.filter(m =>
+      (activeCat === 'all' || m.cat === activeCat) &&
+      !excluded.has(m.name)
+    );
+  }
+
+  function reducedMotion(){
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  pickBtn.addEventListener('click', () => {
+    if (isShuffling) return;
+    const pool = getPool();
+
+    if (pool.length === 0){
+      placeholder.style.display = 'none';
+      result.classList.remove('show');
+      shuffling.style.display = 'block';
+      shuffling.textContent = '조건에 맞는 메뉴가 없어요 🥲';
+      setTimeout(() => { shuffling.style.display = 'none'; placeholder.style.display = 'block'; }, 1400);
+      return;
+    }
+
+    const choice = pool[Math.floor(Math.random() * pool.length)];
+
+    placeholder.style.display = 'none';
+    result.classList.remove('show');
+
+    if (reducedMotion()){
+      showResult(choice);
+      return;
+    }
+
+    isShuffling = true;
+    pickBtn.disabled = true;
+    shuffling.style.display = 'block';
+
+    let count = 0;
+    const maxFrames = 12;
+    const interval = setInterval(() => {
+      const r = pool[Math.floor(Math.random() * pool.length)];
+      shuffling.textContent = r.name;
+      count++;
+      if (count >= maxFrames){
+        clearInterval(interval);
+        shuffling.style.display = 'none';
+        showResult(choice);
+        isShuffling = false;
+        pickBtn.disabled = false;
+      }
+    }, 70);
+  });
+
+  function showResult(choice){
+    lastPick = choice.name;
+    resultTag.textContent = '오늘의 점심';
+    resultName.textContent = choice.name;
+    resultDesc.textContent = choice.desc;
+    result.classList.add('show');
+  }
+
+  excludeBtn.addEventListener('click', () => {
+    if (!lastPick) return;
+    excluded.add(lastPick);
+    resultTag.textContent = `${lastPick} 제외됨 · 다시 뽑아보세요`;
+  });
+</script>
+
+</body>
+</html>
